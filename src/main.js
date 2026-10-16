@@ -517,6 +517,13 @@ async function boot() {
   // ?fpsdl=标签&warm=秒：预热后采样 8 秒帧间隔，自动下载结果（真实浏览器里做分层对照）
   const fpsTag = Q.get('fpsdl');
   if (fpsTag) {
+    // 规模压测时记录出错原因（显存 / 内存不足、上下文丢失、Worker 异常），随结果一起上报
+    const errs = [];
+    const ce = console.error.bind(console);
+    console.error = (...a) => { errs.push(a.map(String).join(' ').slice(0, 300)); ce(...a); };
+    addEventListener('error', (e) => errs.push(`error: ${e.message}`));
+    addEventListener('unhandledrejection', (e) => errs.push(`rejection: ${e.reason?.message || e.reason}`));
+    window.__probeErrs = errs;
     setTimeout(() => {
       const f = [];
       const VL = window.__layers.vehicleLayer;
@@ -555,6 +562,10 @@ async function boot() {
           workers: window.__fleet?.workers?.length,
           // HUD 上显示的数字（核对口径用）
           hudLoadMB: +(state.bytes / 1048576).toFixed(1), hudLoadMBps: +state.rate.toFixed(1),
+          vramMB: +((VL.vramBytes || 0) / 1048576).toFixed(0),
+          heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(0) : null,
+          glError: VL.gl ? VL.gl.getError() : null,
+          errs: window.__probeErrs || [],
         };
         saveResult(`fps-${fpsTag}.json`, JSON.stringify(r));
       };
