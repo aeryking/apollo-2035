@@ -106,6 +106,7 @@ npm run dev          # http://localhost:5173
 | (3) WebGL 高性能渲染模块 | `src/layers/*`、`src/core/gl.js` |
 | (4) 性能测试报告 | [`docs/性能测试报告.md`](docs/性能测试报告.md)，测试工具 `src/bench/`、`tools/bench/` |
 | 技术文档 | [`docs/技术方案.md`](docs/技术方案.md)、[`docs/00-平台实测.md`](docs/00-平台实测.md) |
+| 作品介绍 | [`docs/Apollo2035-作品介绍.pdf`](docs/Apollo2035-作品介绍.pdf)（背景、架构、场景、创新点、实测数据，13 页） |
 
 ---
 
