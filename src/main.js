@@ -567,7 +567,17 @@ async function boot() {
     dismissSplash();          // 测试模式直接进入中枢，入场层不遮挡画面
     bench = new Bench({ map, layers: window.__layers, state, fleet: window.__fleet, params });
     window.__benchObj = bench;
+    const PH = { loading: '加载', steady: '稳态', interact_pan: '平移', interact_zoom: '缩放', interact_rotate: '旋转', interact_tilt: '倾斜', city_zoom13: '近景' };
+    const phases = Object.keys(PH);
+    const head = `性能测试模式 · 车辆 <b>${params.fleet.toLocaleString()}</b>`;
+    const sub = '请不要移动鼠标，测试约 1 分钟，完成后显示结果';
+    modeBanner(head, sub);
+    bench.onPhase = (name) => {
+      const i = phases.indexOf(name);
+      if (i >= 0) modeBanner(head, sub, `${i + 1} / ${phases.length} · ${PH[name]}`);
+    };
     bench.run().then((r) => {
+      modeBanner(null);
       window.__benchResult = r;
       const md = toMarkdown(r);
       window.__benchMd = md;
@@ -665,6 +675,15 @@ function toast(text, ms = 3200) {
   toast._t = setTimeout(() => t.classList.add('hide'), ms);
 }
 
+/** 顶部模式提示条（演示 / 性能测试）；title 为 null 时收起 */
+function modeBanner(title, sub = '', phase = '') {
+  const el = document.getElementById('mode-banner');
+  if (!el) return;
+  if (!title) { el.classList.add('hide'); return; }
+  el.innerHTML = `<div class="mb-title">${title}</div><div class="mb-sub">${sub}</div>${phase ? `<div class="mb-phase">${phase}</div>` : ''}`;
+  el.classList.remove('hide');
+}
+
 boot().catch((e) => {
   console.error(e);
   const t = document.getElementById('toast');
@@ -682,6 +701,7 @@ function showBenchPanel(r, md) {
   // 按钮放在标题行：省出一行高度，笔记本屏幕上不压住下方的帧率面板
   el.innerHTML = `<div class="bench-head"><h3>性能测试完成</h3>
       <div class="bench-actions"><button id="bench-json" title="下载 JSON">⤓ JSON</button><button id="bench-md" title="下载 Markdown">⤓ MD</button><button id="bench-close" title="关闭">×</button></div></div>
+    <p class="bench-meta">车辆 ${r.meta.fleet.toLocaleString()} · 仿真 Worker ${r.workers?.count ?? '—'} · 内核 ${(r.meta.kernel || '').toUpperCase()}</p>
     <p>首辆车 ${P.loading.firstCarMs} ms · 首条路网 ${P.loading.firstLineMs} ms · 全量 ${P.loading.allLoadedMs} ms</p>
     <table><tr><th>阶段</th><th>FPS</th><th>1%Low</th><th>P95ms</th><th>卡顿</th></tr>
     ${line('加载中', P.loading)}${line('稳态', P.steady)}${line('平移', P.interact_pan)}${line('缩放', P.interact_zoom)}${line('旋转', P.interact_rotate)}${line('倾斜', P.interact_tilt)}${line('近景', P.city_zoom13)}
@@ -765,9 +785,11 @@ function startDemo(map, goAct, cityOf) {
     stopped = true;
     evs.forEach((ev) => window.removeEventListener(ev, stop, true));
     if (flyCamera.anim) { try { map.cancelViewAnimation(flyCamera.anim); } catch { /* 已结束 */ } }
+    modeBanner(null);
     toast('自动演示已停止 · 可自由操作', 2000);
   };
   evs.forEach((ev) => window.addEventListener(ev, stop, { capture: true, passive: true }));
+  modeBanner('演示模式 · <b>自动播放中</b>', '请不要移动鼠标，点击、滚轮或按键会中断演示');
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const wan = Math.round(params.fleet / 10000);
@@ -791,5 +813,6 @@ function startDemo(map, goAct, cityOf) {
       await wait(hold);
     }
     evs.forEach((ev) => window.removeEventListener(ev, stop, true));
+    modeBanner(null);
   })();
 }
