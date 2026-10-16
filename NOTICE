@@ -1,0 +1,12 @@
+Apollo 2035 · 全国无人驾驶出行运营中枢
+Copyright 2026 The Apollo 2035 Authors
+
+本产品依据 Apache License 2.0 授权发布。
+
+本产品使用了以下第三方服务、数据与开源软件：
+- 百度地图开放平台 JavaScript API GL 4.0（https://lbsyun.baidu.com），使用须遵守其服务条款
+- OpenStreetMap 数据（© OpenStreetMap contributors，ODbL 1.0），public/data/ 中的路网与路线由其派生
+- DataV.GeoAtlas 行政区划数据（阿里云）
+- Vite（MIT）、earcut（ISC）
+
+车辆、需求与事件均为程序生成的模拟数据。「Apollo」「2035」为概念演示设定，不代表百度官方数据或产品。

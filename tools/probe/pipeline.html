@@ -1,0 +1,51 @@
+<!doctype html><html><head><meta charset="utf-8"><title>流式管线基准（无地图）</title></head>
+<body style="font:14px monospace;background:#111;color:#ddd"><pre id="log">运行中…</pre>
+<script type="module">
+/**
+ * 流式数据管线基准：不加载百度地图，只跑本项目的 Worker 管线，
+ * 测「下载 → 解析 → 仿真/三角化 → 交付主线程」的纯吞吐，排除底图干扰。
+ * 图层用桩对象代替（只计数，不上显存）。
+ */
+import { Fleet } from '/src/sim/fleet.js';
+import { LineFeed } from '/src/stream/lineFeed.js';
+import { ZoneFeed } from '/src/stream/zoneFeed.js';
+const Q = new URLSearchParams(location.search);
+const FLEET = Number(Q.get('fleet') || 1000000);
+const WORKERS = Number(Q.get('workers') || 4);
+const out = (window.__probe = { done: false });
+const log = (s) => { document.getElementById('log').textContent += '\n' + s; };
+
+const [cities, packs] = await Promise.all([fetch('/data/cities.json').then((r) => r.json()), fetch('/data/packs.json').then((r) => r.json())]);
+const t0 = performance.now();
+const marks = {};
+const mark = (k) => { if (!marks[k]) marks[k] = +(performance.now() - t0).toFixed(1); };
+
+// 桩图层：记录到达时间与数量
+const stubVehicles = { parts: [], addPart(p) { this.parts.push({ ...p, filled: 0 }); return this.parts.at(-1); }, pushSnapshot(i, data) { const n = data.byteLength / 16; if (n) mark('firstCarSnapshot'); this.parts[i].filled = n; } };
+const stubRoads = { segs: 0, pushSegments(a) { mark('firstLine'); this.segs += a.length / 8; } };
+const stubZones = { fill: 0, line: 0, pushFill(a) { mark('firstZone'); this.fill += a.length / 4; }, pushOutline(a) { this.line += a.length / 4; } };
+
+let linesDone = false, zonesDone = false;
+const lineFeed = new LineFeed({ layer: stubRoads, packs: packs.lines, cities, onEvent: (e) => { if (e.t === 'linesDone') { linesDone = true; mark('linesDone'); out.lineBytes = e.bytes; } } });
+lineFeed.prioritize([108.9, 34.2]);
+lineFeed.start();
+new ZoneFeed({ layer: stubZones, onEvent: (e) => { if (e.t === 'zonesDone') { zonesDone = true; mark('zonesDone'); out.zone = { features: e.features, ms: Math.round(e.ms) }; } } }).start();
+const fleet = new Fleet({ layer: stubVehicles, cities, packs: packs.routes, total: FLEET, workers: WORKERS, wasm: Q.get('wasm') !== '0', onEvent: (e) => { if (e.t === 'city') mark('firstCity'); } });
+
+const iv = setInterval(() => {
+  const cars = stubVehicles.parts.reduce((s, p) => s + p.filled, 0);
+  if (cars >= FLEET * 0.999) mark('allCars');
+  if (marks.allCars && linesDone && zonesDone) {
+    clearInterval(iv);
+    const total = (fleet.loadedBytes + (out.lineBytes || 0) + 4438430) / 1048576;
+    const allMs = Math.max(marks.allCars, marks.linesDone, marks.zonesDone);
+    Object.assign(out, {
+      fleet: FLEET, workers: WORKERS, kernel: fleet.kernel, marks, totalMB: +total.toFixed(1),
+      throughputMBs: +(total / (allMs / 1000)).toFixed(1), carsPerSec: Math.round(FLEET / (marks.allCars / 1000)),
+      roadSegments: stubRoads.segs, zoneVerts: stubZones.fill, stepMs: +fleet.avgStepMs().toFixed(1), done: true,
+    });
+    log(JSON.stringify(out, null, 2));
+    fleet.dispose();
+  }
+}, 50);
+</script></body></html>

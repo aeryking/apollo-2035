@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Apollo 2035 · 全国无人驾驶出行运营中枢</title>
+<link rel="icon" href="/img/apollo-logo.png" />
+<link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+
+  <!-- ===== 入场覆盖层：接入进度 + 品牌 ===== -->
+  <div id="splash">
+    <div class="sp-card">
+      <div class="sp-head">
+        <img class="sp-logo" src="/img/apollo-logo.png" alt="Apollo" />
+        <div class="sp-head-txt">
+          <div class="sp-kicker">全国无人驾驶出行运营中枢</div>
+          <div class="sp-sub">APOLLO 2035 · 概念演示</div>
+        </div>
+      </div>
+      <div class="sp-count">
+        <b id="s-cars">0</b><i>辆</i>
+      </div>
+      <div class="sp-cap"><span class="dot"></span><span id="s-state">正在接入全国车流</span></div>
+      <div class="sp-bar"><i id="s-bar"></i></div>
+      <div class="sp-meta">
+        <div><label>已接入数据</label><b id="s-mb">0.0 MB</b></div>
+        <div><label>加载吞吐</label><b id="s-rate">0.0 MB/s</b></div>
+        <div><label>已渲染要素</label><b id="s-feat">0</b></div>
+        <div><label>覆盖城市</label><b id="s-city">0</b></div>
+      </div>
+      <button id="sp-enter" class="btn-primary">进入运营中枢</button>
+      <div class="sp-foot">模拟数据 · 基于百度地图 JSAPI 4.0 WebGLLayer 流式渲染</div>
+    </div>
+  </div>
+
+  <!-- 左上：品牌 -->
+  <header id="hud-head" class="panel">
+    <img class="logo" src="/img/apollo-logo.png" alt="Apollo" />
+    <div class="brand">
+      <div class="brand-line">APOLLO<i>2035</i></div>
+      <div class="brand-sub">全国无人驾驶出行运营中枢</div>
+    </div>
+    <div class="brand-sep"></div>
+    <div class="brand-status"><span class="dot"></span><span id="b-status">初始化</span></div>
+  </header>
+
+  <!-- 左下：实时指标 -->
+  <section id="hud-metrics" class="panel">
+    <div class="kpi">
+      <label>在线车辆</label>
+      <b id="m-cars" class="kpi-v">0</b>
+    </div>
+    <div class="kpi-rows">
+      <div><label>已渲染要素</label><b id="m-features">0</b></div>
+      <div><label>已接入数据</label><b id="m-bytes">0 MB</b></div>
+      <div><label>加载吞吐</label><b id="m-rate">0 MB/s</b></div>
+    </div>
+  </section>
+
+  <!-- 右下：性能 -->
+  <section id="hud-perf" class="panel">
+    <div class="fps"><b id="p-fps">--</b><span>FPS</span></div>
+    <div class="rows">
+      <div><label>上传耗时</label><span id="p-upload">0.0 ms</span></div>
+      <div><label>GPU 耗时</label><span id="p-gpu">-- ms</span></div>
+      <div><label>帧耗时</label><span id="p-frame">0.0 ms</span></div>
+      <div><label>Draw Call</label><span id="p-dc">0</span></div>
+      <div><label>缩放级别</label><span id="p-zoom">--</span></div>
+    </div>
+    <canvas id="p-spark" class="spark"></canvas>
+  </section>
+
+  <!-- 右上：图层开关 -->
+  <section id="hud-layers" class="panel">
+    <div class="panel-title">图层</div>
+    <label><input type="checkbox" id="l-cars" checked /><span>车辆 <em>点</em></span></label>
+    <label><input type="checkbox" id="l-roads" checked /><span>干线路网 <em>线</em></span></label>
+    <label><input type="checkbox" id="l-hex" /><span>需求预测 <em>3D 面</em></span></label>
+    <label><input type="checkbox" id="l-zones" checked /><span>区域分布 <em>面</em></span></label>
+  </section>
+
+  <!-- 底部：时间轴 / 幕 -->
+  <footer id="hud-scene" class="panel">
+    <div id="acts">
+      <button data-act="nation" class="active"><i>Ⅰ</i>全国脉搏</button>
+      <button data-act="tide"><i>Ⅱ</i>城市潮汐<span class="act-city">北京</span><b class="act-caret">▾</b></button>
+      <button data-act="demand"><i>Ⅲ</i>网约车需求预测<span class="act-city">北京</span><b class="act-caret">▾</b></button>
+      <button data-act="corridor"><i>Ⅳ</i>生命通道<span class="act-city">北京 · 120</span><b class="act-caret">▾</b></button>
+    </div>
+    <div class="bar-sep"></div>
+    <div id="scrubber">
+      <label class="scrub-cap">仿真时刻</label>
+      <input type="range" id="t-range" min="0" max="1439" value="450" />
+      <span id="t-label">07:30</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="hide"></div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

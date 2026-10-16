@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body,#m{margin:0;height:100%}</style></head><body><div id="m"></div>
+<script>
+window.__cb = function () {
+  var q = new URLSearchParams(location.search);
+  var map = new BMap.Map('m');
+  map.centerAndZoom(new BMap.Point(+(q.get('lng')||108.9), +(q.get('lat')||34.2)), +(q.get('zoom')||5));
+  map.enableScrollWheelZoom(true);
+  window.__map = map;
+  // ?fpsdl=名称：预热 20 s 后采样 10 s 帧间隔，结果自动下载成 JSON（无需任何自动化/调试协议）
+  var tag = q.get('fpsdl');
+  if (tag) setTimeout(function () {
+    var f = [], prev = performance.now(), t0 = prev;
+    (function loop() {
+      var now = performance.now(); f.push(now - prev); prev = now;
+      if (now - t0 < 10000) return requestAnimationFrame(loop);
+      var s = f.slice().sort(function (a, b) { return a - b; });
+      var r = { tag: tag, fps: +(1000 / (f.reduce(function (a, b) { return a + b; }, 0) / f.length)).toFixed(1), p50: +s[s.length >> 1].toFixed(1), p95: +s[Math.floor(s.length * 0.95)].toFixed(1), max: +s[s.length - 1].toFixed(0), frames: f.length, ua: navigator.userAgent, webdriver: navigator.webdriver };
+      // 优先回传开发服务器（Safari 自动下载会弹确认框），失败再下载
+      fetch('/__bench/save?name=' + encodeURIComponent('fps-' + tag + '.json'), { method: 'POST', body: JSON.stringify(r) })
+        .then(function (res) { if (!res.ok) throw 0; })
+        .catch(function () {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([JSON.stringify(r)], { type: 'application/json' }));
+          a.download = 'fps-' + tag + '.json';
+          document.body.appendChild(a); a.click();
+        });
+    })();
+  }, 20000);
+};
+</script>
+<script>
+// AK 不入库：从 ?ak= 读取（tools/bench/*.sh 会自动从 .env.local 带上）
+(function () {
+  var ak = new URLSearchParams(location.search).get('ak') || '';
+  var s = document.createElement('script');
+  s.src = 'https://api.map.baidu.com/api?v=4.0&type=webgl&ak=' + encodeURIComponent(ak) + '&callback=__cb';
+  document.body.appendChild(s);
+})();
+</script>
+</body></html>

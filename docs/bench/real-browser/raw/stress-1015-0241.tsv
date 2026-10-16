@@ -1,0 +1,7 @@
+tag	browser	fps	p50	p95	max	ourCpuMs	gpuMs	lodK	swapMB	load
+Z-SF-200w	safari	60.2	17	19	27	0.2	None	15	5765.38	17.95
+Z-CR-200w	chrome	60.1	16.7	17.2	18	0.05	3.84	15	5621.38	12.92
+Z-SF-400w	safari	60.2	17	18	28	0.24	None	15	5597.38	8.81
+Z-CR-400w	chrome	60.1	16.7	17.3	21	0.05	6.01	15	5589.38	6.26
+Z-SF-800w	safari	59.9	17	18	37	0.14	None	15	5557.38	5.11
+Z-CR-800w	chrome	52.7	18.4	23.3	31	0.05	35.33	15	5549.38	3.96

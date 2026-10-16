@@ -1,0 +1,12 @@
+tag	browser	fps	p50	p95	max	ourCpuMs	gpuMs	lodK	swapMB	load
+Q-SF-bare	safari	60.1	17	17	21	None	None	None	5846.31	2.85
+Q-CR-bare	chrome	60.2	16.7	17.5	21	None	None	None	5734.31	3.80
+Q-SF-30w	safari	60	17	19	26	0.5	None	4	6103.25	4.22
+Q-CR-30w	chrome	60.1	16.7	17.7	18	0.1	6.56	4	5999.25	3.42
+Q-CU-30w	chrome	155.7	6.1	10.8	19	0.09	6.77	4	5991.25	2.87
+Q-SF-100w	safari	60.1	17	19	26	0.49	None	12	5943.25	2.91
+Q-CR-100w	chrome	60.1	16.7	17.8	19	0.12	6.82	11	5919.25	3.22
+Q-CU-100w	chrome	154.2	6.2	10.8	14	0.06	7.35	12	5911.25	3.28
+Q-SF-200w	safari	60.5	17	20	27	0.46	None	15	5895.25	3.28
+Q-CR-200w	chrome	60.1	16.7	17.8	21	0.15	7.11	15	5791.25	19.05
+Q-CU-200w	chrome	141.5	7.1	11.1	250	1.96	8.98	15	5783.25	12.71

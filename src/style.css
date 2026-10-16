@@ -1,0 +1,345 @@
+/* ============================================================
+   Apollo 2035 · 运营中枢 HUD
+   深空玻璃面板：静态渐变 + 细描边 + 角标，不使用全屏滤镜
+   （叠加层全部避开「整屏 backdrop-filter / 大范围混合」——
+     那会在首屏加载期额外消耗 GPU，正好污染我们要展示的加载帧率）
+   ============================================================ */
+:root{
+  --bg:#05080f;
+  --panel:rgba(10,16,27,.78);
+  --panel-2:rgba(8,13,22,.62);
+  --line:rgba(120,170,240,.16);
+  --line-hi:rgba(140,200,255,.42);
+  --txt:#e2ecf9; --dim:#7b8ba4; --dim2:#5d6b83;
+  --accent:#4ea8ff; --cyan:#35e0ff; --gold:#ffb45e; --ok:#5ce08a;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body,#app,#map{height:100%;margin:0}
+body{
+  background:var(--bg); color:var(--txt); overflow:hidden;
+  font:13px/1.5 "PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#map{position:absolute;inset:0}
+/* 底图瓦片到达前，BMap 的容器默认是浅灰白，深色界面下会闪出一片亮底。
+   这里把底色钉成深色（本项目的样式全部以 #070b12 为底），瓦片上来后无缝衔接 */
+#map{background-color:#070b12!important}   /* 只改容器自身：内部各层不能上底色，会盖住画布 */
+/* 底图版权信息：百度 JSAPI 自己会把 BMap_cpyCtrl 设为 display:none（实测，含
+   「© Baidu … Data © 百度智图 & OpenStreetMap & HERE」整条），底层 logo 图仍保留。
+   这里只压低不透明度适配暗色界面，不主动隐藏任何版权标识 */
+#map .BMap_cpyCtrl,#map .anchorBL{opacity:.55}
+
+/* ---------------- 面板基座：玻璃 + 角标 ---------------- */
+.panel{
+  position:absolute; z-index:10;
+  background:linear-gradient(165deg,rgba(16,25,41,.86),rgba(8,13,22,.78));
+  border:1px solid var(--line); border-radius:4px;
+  backdrop-filter:blur(14px) saturate(1.25);
+  -webkit-backdrop-filter:blur(14px) saturate(1.25);
+  padding:12px 14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(180,220,255,.06);
+}
+/* 四个 L 形角标 */
+.panel::before{
+  content:''; position:absolute; inset:-1px; pointer-events:none; border-radius:4px;
+  background:
+    linear-gradient(var(--line-hi),var(--line-hi)) left top/9px 1px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) left top/1px 9px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) right bottom/9px 1px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) right bottom/1px 9px no-repeat;
+}
+/* 顶部一条渐隐高光 */
+.panel::after{
+  content:''; position:absolute; left:10px; right:10px; top:0; height:1px; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(120,200,255,.55),transparent);
+}
+.panel-title{
+  font:600 10px/1 var(--mono); letter-spacing:.28em; color:var(--dim2);
+  text-transform:uppercase; margin-bottom:2px;
+}
+.dot{
+  width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block;
+  box-shadow:0 0 0 3px rgba(92,224,138,.14), 0 0 8px rgba(92,224,138,.9);
+  animation:beat 1.6s ease-in-out infinite;
+}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}
+
+.btn-primary{
+  background:linear-gradient(180deg,rgba(70,160,255,.95),rgba(28,92,208,.95));
+  color:#fff; border:1px solid rgba(150,210,255,.5);
+  padding:10px 20px; border-radius:4px; cursor:pointer; font-size:13px;
+  letter-spacing:.18em; font-weight:600;
+  box-shadow:0 6px 22px rgba(47,134,255,.32), inset 0 1px 0 rgba(255,255,255,.22);
+  transition:filter .15s,transform .15s;
+}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary:disabled{opacity:.45;cursor:default;box-shadow:none;filter:none}
+
+/* ---------------- 左上：品牌 ---------------- */
+#hud-head{
+  top:16px; left:16px; display:flex; align-items:center; gap:12px;
+  padding:10px 16px 10px 12px;
+}
+#hud-head .logo{
+  height:30px; width:auto; display:block;
+  filter:drop-shadow(0 0 10px rgba(78,168,255,.55));
+}
+#hud-head .brand{display:flex;flex-direction:column;gap:1px}
+.brand-line{
+  font:700 17px/1.15 var(--mono); letter-spacing:.16em; color:#eaf4ff;
+  text-shadow:0 0 14px rgba(90,180,255,.45);
+}
+.brand-line i{
+  font-style:normal; margin-left:8px; color:var(--cyan); letter-spacing:.1em;
+}
+.brand-sub{font-size:10px;color:var(--dim);letter-spacing:.14em}
+.brand-sep{width:1px;height:30px;background:linear-gradient(180deg,transparent,var(--line-hi),transparent)}
+.brand-status{
+  display:flex; align-items:center; gap:7px; font:600 11px/1 var(--mono);
+  letter-spacing:.14em; color:#a9c4e0;
+}
+
+/* ---------------- 左下：实时指标 ---------------- */
+#hud-metrics{left:16px;bottom:96px;width:240px}   /* 定宽：放得下 8 位数（10,000,000），数字变大时面板不跳 */
+.kpi label{display:block;font:500 11px/1 var(--mono);letter-spacing:.2em;color:var(--dim);margin-bottom:7px}
+.kpi-v{
+  display:block; font:700 32px/1 var(--mono); letter-spacing:.01em;
+  color:#f2f8ff; font-variant-numeric:tabular-nums;
+  text-shadow:0 0 22px rgba(78,168,255,.55),0 0 3px rgba(255,255,255,.35);
+}
+.kpi-rows{
+  margin-top:10px; padding-top:9px; display:grid; gap:5px;
+  border-top:1px solid var(--line);
+}
+.kpi-rows div{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.kpi-rows label{color:var(--dim);font-size:11px}
+.kpi-rows b{font:600 13px/1 var(--mono);color:#8ed0ff;font-variant-numeric:tabular-nums}
+
+/* ---------------- 右下：性能（?debug=1） ---------------- */
+#hud-perf{right:16px;bottom:96px;min-width:214px}
+#hud-perf .fps{display:flex;align-items:baseline;gap:7px;margin-bottom:9px}
+#hud-perf .fps b{font:700 30px/1 var(--mono);color:var(--ok);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 16px rgba(92,224,138,.5)}
+#hud-perf .fps b.warn{color:var(--gold);text-shadow:0 0 16px rgba(255,180,94,.5)}
+#hud-perf .fps span{color:var(--dim);font-size:10px;letter-spacing:.2em}
+#hud-perf .rows{display:grid;gap:5px}
+#hud-perf .rows div{display:flex;justify-content:space-between;font-size:11px}
+#hud-perf .rows label{color:var(--dim)}
+#hud-perf .rows span{font-family:var(--mono);color:#b9c7dc;font-variant-numeric:tabular-nums}
+.spark{display:block;width:214px;height:30px;margin-top:9px;border-top:1px solid var(--line);padding-top:4px;box-sizing:content-box}
+
+/* ---------------- 右上：图层 ---------------- */
+#hud-layers{right:16px;top:16px;display:grid;gap:7px;font-size:12px;min-width:150px}
+#hud-layers label{display:flex;gap:9px;align-items:center;cursor:pointer;color:#c3d2e6}
+#hud-layers label span{display:flex;align-items:baseline;gap:6px}
+#hud-layers em{font-style:normal;font:500 9px/1 var(--mono);letter-spacing:.1em;color:var(--dim2)}
+#hud-layers input{accent-color:var(--accent);width:14px;height:14px}
+
+/* ---------------- 底部：幕 / 时间轴 ---------------- */
+#hud-scene{
+  left:16px; right:16px; bottom:16px; display:flex; align-items:center; gap:18px;
+  justify-content:center; padding:10px 18px;
+}
+#acts{display:flex;gap:8px}
+#acts button{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.03);color:var(--dim);border:1px solid var(--line);
+  padding:7px 15px;border-radius:3px;cursor:pointer;font-size:12px;letter-spacing:.08em;
+  transition:color .15s,background .15s,border-color .15s;
+}
+#acts button i{
+  font-style:normal;font:600 10px/1 var(--mono);color:var(--dim2);letter-spacing:0;
+}
+#acts button:hover{color:#dfeaf7;border-color:var(--line-hi)}
+#acts button.active{
+  color:#fff;background:linear-gradient(180deg,rgba(78,168,255,.26),rgba(78,168,255,.10));
+  border-color:rgba(110,190,255,.7);box-shadow:0 0 18px rgba(78,168,255,.30),inset 0 1px 0 rgba(200,230,255,.22);
+}
+#acts button.active i{color:var(--cyan)}
+.bar-sep{width:1px;height:26px;background:linear-gradient(180deg,transparent,var(--line-hi),transparent)}
+#scrubber{display:flex;align-items:center;gap:12px;min-width:340px}
+.scrub-cap{font:500 10px/1 var(--mono);letter-spacing:.2em;color:var(--dim2);white-space:nowrap}
+#t-range{flex:1;accent-color:var(--accent)}
+#t-label{
+  font:700 14px/1 var(--mono);color:var(--cyan);min-width:52px;text-align:right;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(53,224,255,.45);
+}
+
+/* ---------------- 中央提示 ---------------- */
+#toast{
+  position:absolute;left:50%;top:16%;transform:translate(-50%,-50%);z-index:30;
+  color:#cfe0f4;font-size:14px;letter-spacing:.14em;text-align:center;
+  padding:14px 30px;border-radius:4px;
+  background:linear-gradient(180deg,rgba(12,20,34,.88),rgba(8,13,22,.8));
+  border:1px solid var(--line);border-top:1px solid rgba(120,200,255,.5);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 14px 40px rgba(0,0,0,.5);
+  pointer-events:none;transition:opacity .45s ease,transform .45s ease;
+}
+#toast.hide,#toast:empty{display:none!important}
+
+/* ---------------- 入场覆盖层 ---------------- */
+#splash{
+  position:absolute;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  /* 只用静态径向渐变压暗底图：整屏 backdrop-filter 会在加载期吃掉 GPU。
+     压得很深是有意的：BMap 的 WebGL 画布在暗色样式生效前（冷缓存约 1–2.5 秒）先清成浅灰，
+     透出来是一片灰雾（实测 tilesloaded 事件早于暗色生效，不能拿它当「可以透出底图」的信号）。
+     入场层淡出时底图已是暗色，正好揭开一张点亮的全国地图 */
+  background:radial-gradient(120% 80% at 50% 48%,rgba(5,9,18,.93) 0%,rgba(3,6,12,.97) 60%,#020409 100%);
+  transition:opacity .8s ease,visibility .8s;
+}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.sp-card{
+  width:min(560px,86vw); text-align:center; padding:34px 40px 26px;
+  background:linear-gradient(165deg,rgba(14,23,39,.86),rgba(6,11,20,.9));
+  border:1px solid var(--line); border-radius:6px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(180,220,255,.08);
+  position:relative;
+  animation:sp-in .7s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes sp-in{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.sp-card::before{
+  content:''; position:absolute; inset:-1px; pointer-events:none; border-radius:6px;
+  background:
+    linear-gradient(var(--line-hi),var(--line-hi)) left top/18px 1px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) left top/1px 18px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) right bottom/18px 1px no-repeat,
+    linear-gradient(var(--line-hi),var(--line-hi)) right bottom/1px 18px no-repeat;
+}
+.sp-head{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:26px}
+.sp-logo{height:40px;width:auto;filter:drop-shadow(0 0 16px rgba(78,168,255,.6))}
+.sp-head-txt{text-align:left}
+.sp-kicker{font-size:12px;letter-spacing:.22em;color:#cfe0f4}
+.sp-sub{font:600 10px/1.6 var(--mono);letter-spacing:.24em;color:var(--dim2)}
+.sp-count{display:flex;align-items:baseline;justify-content:center;gap:10px}
+.sp-count b{
+  font:700 clamp(44px,7vw,68px)/1 var(--mono);letter-spacing:.01em;color:#f4f9ff;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 44px rgba(78,168,255,.6),0 0 4px rgba(255,255,255,.5);
+}
+.sp-count i{font-style:normal;font-size:15px;color:var(--dim);letter-spacing:.1em}
+.sp-cap{
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;
+  font-size:12px;letter-spacing:.16em;color:#a9c4e0;
+}
+.sp-bar{
+  position:relative;height:2px;margin:20px 0 18px;background:rgba(120,170,240,.14);overflow:hidden;
+}
+.sp-bar i{
+  position:absolute;inset:0 100% 0 0;width:0;
+  background:linear-gradient(90deg,rgba(78,168,255,.5),var(--cyan));
+  box-shadow:0 0 14px rgba(53,224,255,.85);
+  transition:width .3s ease;
+}
+.sp-meta{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  padding:14px 0 20px;border-bottom:1px solid var(--line);
+}
+.sp-meta label{display:block;font:500 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);margin-bottom:6px}
+.sp-meta b{font:600 13px/1 var(--mono);color:#8ed0ff;font-variant-numeric:tabular-nums}
+.sp-foot{margin-top:16px;font-size:10px;letter-spacing:.1em;color:var(--dim2)}
+
+/* ---------------- 测试结果面板 ---------------- */
+/* 测试数据悬窗：放在图层开关下方；高度封顶，矮屏时自身滚动，不压住右下角的帧率面板 */
+.bench-panel{right:16px;top:174px;min-width:320px;font-size:11px;max-height:calc(100vh - 174px - 96px - 226px);overflow:auto}
+.bench-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px}
+.bench-panel h3{margin:0;font-size:13px;color:#8ed0ff}
+.bench-panel p{margin:0 0 7px;color:#b9c7dc}
+.bench-panel table{border-collapse:collapse;width:100%;font-family:var(--mono)}
+.bench-panel th,.bench-panel td{padding:2px 6px;border-bottom:1px solid var(--line);text-align:right}
+.bench-panel th:first-child,.bench-panel td:first-child{text-align:left}
+.bench-actions{display:flex;gap:6px}
+.bench-actions button{background:rgba(78,168,255,.18);color:#fff;border:1px solid rgba(78,168,255,.5);border-radius:3px;padding:3px 8px;cursor:pointer;font:500 11px/1.2 var(--mono)}
+.bench-actions button:hover{background:rgba(78,168,255,.32)}
+#bench-close{background:transparent;border-color:var(--line);color:var(--dim);font-size:14px;padding:1px 7px}
+#bench-close:hover{color:#fff;border-color:var(--line-hi);background:rgba(255,255,255,.06)}
+
+/* ---------------- 性能测试提示层 - debug=1 时显示在顶部 ---------------- */
+#bench-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+.bench-hint-inner {
+  max-width: 720px;
+  margin: 16px auto 0;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(14, 21, 35, 0.95), rgba(10, 13, 18, 0.96));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.bench-warn {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fbbf24;
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+.bench-prog-wrap {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.bench-prog-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #6ee7b7);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+  transition: width 0.3s ease-out;
+}
+.bench-prog-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  font-family: var(--mono);
+}
+
+/* ---------------- 幕按钮上的城市 + 二级城市菜单 ---------------- */
+#acts .act-city{font-size:11px;color:var(--cyan);opacity:.85;margin-left:2px}
+#acts .act-caret{font-weight:400;font-size:9px;color:var(--dim);margin-left:-2px}
+#acts button.active .act-caret{color:#cfe8ff}
+#city-menu{
+  position:absolute; z-index:40; display:flex; flex-direction:column; gap:3px;
+  padding:6px; min-width:132px;
+}
+#city-menu.hide{display:none}
+#city-menu button{
+  text-align:left; background:transparent; border:1px solid transparent; border-radius:3px;
+  color:#c3d2e6; font-size:12px; letter-spacing:.08em; padding:6px 12px; cursor:pointer;
+}
+#city-menu button:hover{background:rgba(78,168,255,.14);border-color:var(--line-hi);color:#fff}
+#city-menu button.on{color:var(--cyan);background:rgba(53,224,255,.08)}
+#city-menu .cm-dice{
+  display:flex; align-items:center; gap:8px; color:#fff; font-weight:600;
+  border-bottom:1px solid var(--line); border-radius:3px 3px 0 0; margin-bottom:3px; padding-bottom:8px;
+}
+#city-menu .cm-dice span{font-size:15px;line-height:1}
+
+/* ---------------- 城市名标注（?showcity） ---------------- */
+.city-label{
+  display:inline-block; color:rgba(228,240,255,.9)!important;
+  font:500 11px/1 "PingFang SC","Microsoft YaHei",sans-serif!important; letter-spacing:.1em;
+  white-space:nowrap; pointer-events:none;
+  /* 淡深色衬底：东部城市光晕密集，纯文字压在亮光上看不清 */
+  background:rgba(4,9,18,.58)!important; border-radius:2px; padding:2px 5px 2px 6px!important;
+  text-shadow:0 0 3px rgba(0,0,0,.9);
+  transform:translateX(-50%); transition:opacity .6s;
+}
+.city-label.big{font-size:12px!important;color:#fff!important;font-weight:600!important}
+/* 第四幕：事件种类切换（120 / 119） */
+#city-menu .cm-kinds{display:flex;gap:4px;padding-bottom:6px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+#city-menu .cm-kinds button{flex:1;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11px;padding:6px 9px;border-color:var(--line)}
+#city-menu .cm-kinds button.on{color:#fff;background:rgba(255,90,70,.16);border-color:rgba(255,120,100,.55)}
+#city-menu .cm-kinds span{font-size:14px;line-height:1}

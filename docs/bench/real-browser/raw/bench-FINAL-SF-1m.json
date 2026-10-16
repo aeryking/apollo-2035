@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15",
+    "cores": 8,
+    "dpr": 2,
+    "viewport": [
+      1470,
+      752
+    ],
+    "fleet": 1000000,
+    "workers": "auto",
+    "uploadBudgetMs": 2.5,
+    "kernel": "wasm",
+    "when": "2026-10-14T19:44:16.145Z",
+    "gpu": "Apple GPU"
+  },
+  "phases": {
+    "loading": {
+      "durationMs": 970,
+      "frames": 45,
+      "avgFps": 40,
+      "p50Ms": 17,
+      "p95Ms": 62,
+      "p99Ms": 223,
+      "maxMs": 223,
+      "low1Fps": 4.5,
+      "jank": 3,
+      "over33": 4,
+      "minFps": 4.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "firstLineMs": 77,
+      "firstCarMs": 91,
+      "firstZoneMs": 116,
+      "mapReadyMs": 91,
+      "allLoadedMs": 976,
+      "bytesMB": 38.7,
+      "throughputMBs": 39.89,
+      "carsLoaded": 1000000,
+      "carsPerSec": 1030928,
+      "roadSegments": 657668,
+      "zoneVertices": 488763,
+      "timedOut": false
+    },
+    "steady": {
+      "durationMs": 8001,
+      "frames": 485,
+      "avgFps": 60.6,
+      "p50Ms": 17,
+      "p95Ms": 19,
+      "p99Ms": 24,
+      "maxMs": 26,
+      "low1Fps": 41.7,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 38.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "visibleFeatures": 1081668,
+      "drawCalls": 11
+    },
+    "interact_pan": {
+      "durationMs": 6013,
+      "frames": 363,
+      "avgFps": 60.3,
+      "p50Ms": 17,
+      "p95Ms": 19,
+      "p99Ms": 24,
+      "maxMs": 26,
+      "low1Fps": 41.7,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 38.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "drawCalls": 11
+    },
+    "interact_zoom": {
+      "durationMs": 6014,
+      "frames": 362,
+      "avgFps": 60.2,
+      "p50Ms": 17,
+      "p95Ms": 20,
+      "p99Ms": 24,
+      "maxMs": 26,
+      "low1Fps": 41.7,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 38.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "drawCalls": 11
+    },
+    "interact_rotate": {
+      "durationMs": 6013,
+      "frames": 361,
+      "avgFps": 60,
+      "p50Ms": 17,
+      "p95Ms": 19,
+      "p99Ms": 21,
+      "maxMs": 26,
+      "low1Fps": 47.6,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 38.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "drawCalls": 11
+    },
+    "interact_tilt": {
+      "durationMs": 6015,
+      "frames": 362,
+      "avgFps": 60.2,
+      "p50Ms": 17,
+      "p95Ms": 18,
+      "p99Ms": 20,
+      "maxMs": 26,
+      "low1Fps": 50,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 38.5,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "drawCalls": 11
+    },
+    "city_zoom13": {
+      "durationMs": 6013,
+      "frames": 360,
+      "avgFps": 59.8,
+      "p50Ms": 17,
+      "p95Ms": 18,
+      "p99Ms": 22,
+      "maxMs": 28,
+      "low1Fps": 45.5,
+      "jank": 0,
+      "over33": 0,
+      "minFps": 35.7,
+      "longTasks": 0,
+      "longTaskMs": 0,
+      "mainThreadBusyPct": 0,
+      "gpuMsAvg": null,
+      "gpuUtilPct": null,
+      "mem": {
+        "jsHeapMB": null,
+        "jsHeapLimitMB": null,
+        "gpuBuffersMB": 123.6
+      },
+      "visibleFeatures": 1541967,
+      "drawCalls": 6
+    }
+  },
+  "workers": {
+    "count": 6,
+    "stepMsPerSec": 12,
+    "cpuPctPerWorker": 1.2
+  },
+  "memEnd": {
+    "jsHeapMB": null,
+    "jsHeapLimitMB": null,
+    "gpuBuffersMB": 123.6
+  }
+}

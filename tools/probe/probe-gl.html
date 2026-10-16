@@ -1,0 +1,5 @@
+<!doctype html><html><body><script>
+const c = document.createElement('canvas'); const gl = c.getContext('webgl');
+const dbg = gl && gl.getExtension('WEBGL_debug_renderer_info');
+window.__probe = { webgl: !!gl, renderer: gl && dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : null, vendor: gl && dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : null, done: true };
+</script></body></html>

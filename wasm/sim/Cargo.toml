@@ -1,0 +1,15 @@
+[package]
+name = "a35sim"
+version = "0.1.0"
+edition = "2021"
+description = "Apollo 2035 车辆仿真内核：沿路线推进 + 快照打包（WebAssembly）"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

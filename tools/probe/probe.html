@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="utf-8"><title>probe</title>
+<style>html,body,#map{margin:0;height:100%;background:#000}</style></head>
+<body><div id="map"></div>
+<script type="module">
+import { loadBMap } from '/src/map/baidu.js';
+import { ll2rel } from '/src/core/projection.js';
+import { BaseLayer } from '/src/layers/base.js';
+import { program } from '/src/core/gl.js';
+const out = (window.__probe = { err: [], log: [] });
+await loadBMap(import.meta.env.VITE_BAIDU_AK);
+const map = new BMap.Map('map');
+map.centerAndZoom(new BMap.Point(116.40, 39.91), 12);
+const rel = new Float32Array([[116.397, 39.909], [116.30, 39.86], [116.52, 39.96]].flatMap((p) => ll2rel(p[0], p[1], [0, 0])));
+
+class Dot extends BaseLayer {
+  onInit(gl) {
+    out.ctxGl = gl.constructor?.name || typeof gl;
+    out.wrapped = !(gl instanceof WebGLRenderingContext);
+    this.prog = program(gl, 'attribute vec2 a_p; uniform mat4 u_m; void main(){ gl_Position = u_m * vec4(a_p,0.,1.); gl_PointSize = 40.; }',
+      'precision mediump float; void main(){ gl_FragColor = vec4(0.,0.8,0.2,1.); }');
+    out.attrs = this.prog.a; out.unis = Object.keys(this.prog.u);
+    this.buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, rel, gl.STATIC_DRAW);
+    out.errInit = gl.getError();
+  }
+  onFrame(gl, ctx) {
+    const g = this.prog;
+    gl.useProgram(g.p);
+    out.e1 = gl.getError();
+    gl.uniformMatrix4fv(g.u.u_m, false, ctx.getMVPMatrix());
+    out.e2 = gl.getError();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.enableVertexAttribArray(g.a.a_p);
+    gl.vertexAttribPointer(g.a.a_p, 2, gl.FLOAT, false, 0, 0);
+    out.e3 = gl.getError();
+    gl.drawArrays(gl.POINTS, 0, 3);
+    out.e4 = gl.getError();
+    gl.disableVertexAttribArray(g.a.a_p);
+    out.curProg = gl.getParameter(gl.CURRENT_PROGRAM) === g.p;
+    const m = ctx.getMVPMatrix();
+    const x = m[0]*rel[0] + m[4]*rel[1] + m[12], y = m[1]*rel[0] + m[5]*rel[1] + m[13], w = m[3]*rel[0] + m[7]*rel[1] + m[15];
+    const px = Math.round((x/w*0.5+0.5)*gl.drawingBufferWidth), py = Math.round((y/w*0.5+0.5)*gl.drawingBufferHeight);
+    const b = new Uint8Array(4); gl.readPixels(px, py, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, b);
+    out.readback = { px, py, rgba: Array.from(b) };
+    out.frames = (out.frames || 0) + 1;
+    out.mType = m.constructor.name;
+  }
+}
+new Dot({ zIndex: 20 }).mount(map);
+setTimeout(() => { out.done = true; }, 12000);
+</script></body></html>

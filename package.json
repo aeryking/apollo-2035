@@ -1,0 +1,23 @@
+{
+  "name": "apollo-2035",
+  "private": true,
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Apollo 2035 · 全国无人驾驶出行运营中枢 —— 基于百度地图 JSAPI WebGLLayer 的海量空间数据流式渲染",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "data:fetch": "node tools/fetch-osm.mjs && node tools/fetch-datav.mjs",
+    "data:build": "node tools/build-roads.mjs && node tools/build-lines.mjs && node tools/build-zones.mjs && node tools/build-packs.mjs",
+    "wasm:build": "cd wasm/sim && cargo build --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/a35sim.wasm ../../public/wasm/",
+    "bench:kernel": "node tools/bench/wasm-vs-js.mjs 500000 20"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "earcut": "^3.2.4"
+  }
+}

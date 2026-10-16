@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.local
+
+# 原始抓取数据与逐城中间产物（可由 npm run data:fetch / data:build 重建）
+# 注意：public/data/ 是交付物（流式分块数据），需要随仓库提交
+data-src.noindex/
+data-build.noindex/
+
+wasm/sim/target/
+docs/bench/inbox/
+.DS_Store
