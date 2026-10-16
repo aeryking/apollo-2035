@@ -1,7 +1,10 @@
 node_modules
 dist
+
+# 环境变量与密钥（切勿提交）
 .env
-.env.local
+.env.*
+!.env.example
 
 # 原始抓取数据与逐城中间产物（可由 npm run data:fetch / data:build 重建）
 # 注意：public/data/ 是交付物（流式分块数据），需要随仓库提交

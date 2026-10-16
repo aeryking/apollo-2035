@@ -29,7 +29,7 @@ window.__cb = function () {
 };
 </script>
 <script>
-// AK 不入库：从 ?ak= 读取（tools/bench/*.sh 会自动从 .env.local 带上）
+// AK 不入库：从 ?ak= 读取（tools/bench/*.sh 会自动从 .env 带上）
 (function () {
   var ak = new URLSearchParams(location.search).get('ak') || '';
   var s = document.createElement('script');

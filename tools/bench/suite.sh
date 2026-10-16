@@ -22,7 +22,7 @@ sf()  { state; tools/bench/safari-real.sh "$B/$1" "fps-$2.json" ${3:-120} > /dev
 cr()  { state; tools/bench/chrome-real.sh "$B/$1" "fps-$2.json" ${3:-120} > /dev/null; row $2 $SWAP $LOAD; tail -1 "$SUM"; }
 cru() { state; UNCAPPED=1 tools/bench/chrome-real.sh "$B/$1" "fps-$2.json" ${3:-120} > /dev/null; row $2 $SWAP $LOAD; tail -1 "$SUM"; }
 
-AK="${AK:-$(sed -n 's/^VITE_BAIDU_AK=//p' .env.local 2>/dev/null)}"
+AK="${AK:-$(sed -n 's/^VITE_BAIDU_AK=//p' .env 2>/dev/null)}"
 BARE="tools/probe/bare.html?zoom=5&lng=108.9&lat=34.2&ak=$AK"
 sf  "$BARE&fpsdl=Q-SF-bare"                     Q-SF-bare
 cr  "$BARE&fpsdl=Q-CR-bare"                     Q-CR-bare

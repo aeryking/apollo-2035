@@ -46,7 +46,7 @@
 ```bash
 npm install
 # 浏览器端 AK（百度地图开放平台 → 应用管理 → 浏览器端，Referer 白名单需包含 localhost*）
-echo "VITE_BAIDU_AK=你的AK" > .env.local
+cp .env.example .env   # 然后填写 VITE_BAIDU_AK
 npm run dev          # http://localhost:5173
 ```
 
